@@ -138,8 +138,8 @@ func LoadConfig() (c *Config, err error) {
 
 	checkConfig(c)
 
-	b, _ := json.Marshal(c)
-	fmt.Println(string(b))
+	//b, _ := json.Marshal(c)
+	//fmt.Println(string(b))
 	return
 }
 

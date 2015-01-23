@@ -27,7 +27,7 @@
 	,"STATIC_EXTENSIONS_TO_GZIP":[".js",".css"]		//使用gzip进行压缩传输的静态文件后缀,受客户端协议或FORCE_GZIP影响
 	,"STATICS":[									//静态目录,选项数组或字符串数组
 		{
-			"PATH":"swagger"						//静态目录的路径
+			"PATH":"static"						//静态目录的路径
 			,"PREFIX":""							//此目录在url中的前缀，如果不设置则为/
 			,"SKIP_LOGGING":false					//默认在DEV,TEST模式下为false,在PROD模式下为true. 是否跳过log输出
 			,"INDEX_FILE":""						//如果指定，则以此文件为索引文件			
