@@ -57,7 +57,7 @@ type Config struct {
 	TestOpt                *SubConfig  `json:"TEST"`                      //对于TEST模式下的配置，RUN_MODE为TEST时会覆盖顶级配置
 	ProdOpt                *SubConfig  `json:"PROD"`                      //对于PROD模式下的配置，RUN_MODE为PROD时会覆盖顶级配置
 
-	CutomOpt *map[string]interface{} `json:"CUSTOM"` //自定义选项
+	CutomOpt map[string]interface{} `json:"CUSTOM"` //自定义选项
 }
 
 var (
@@ -221,4 +221,28 @@ func checkConfig(conf *Config) {
 		}
 	}
 
+}
+
+func (c *Config) Custom(key string) interface{} {
+	return c.CutomOpt[key]
+}
+
+func (c *Config) CustomString(key string) string {
+	return utl.ToStr(c.CutomOpt[key])
+}
+
+func (c *Config) CustomInt(key string) int {
+	return utl.Str(utl.ToStr(c.CutomOpt[key])).MustInt()
+}
+
+func (c *Config) CustomInt64(key string) int64 {
+	return utl.Str(utl.ToStr(c.CutomOpt[key])).MustInt64()
+}
+
+func (c *Config) CustomFloat32(key string) float32 {
+	return utl.Str(utl.ToStr(c.CutomOpt[key])).MustFloat32()
+}
+
+func (c *Config) CustomFloat64(key string) float64 {
+	return utl.Str(utl.ToStr(c.CutomOpt[key])).MustFloat64()
 }
