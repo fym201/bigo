@@ -114,6 +114,10 @@ func Classic() *Bigo {
 
 	m.Use(Recovery())
 
+	if conf.EnableGzip {
+		m.Use(Gziper())
+	}
+
 	for i := 0; i < len(conf.Statics); i++ {
 		opt := conf.Statics[i]
 		mopt := StaticOptions{opt.Prefix, opt.SkipLogging, opt.IndexFile, nil, nil}

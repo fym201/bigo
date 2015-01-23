@@ -37,7 +37,8 @@ const (
 // that alter the response body (like the render middleware).
 func Gziper() Handler {
 	return func(ctx *Context) {
-		if !strings.Contains(ctx.Req.Header.Get(HeaderAcceptEncoding), "gzip") {
+
+		if !GetConfig().ForceGzip && !strings.Contains(ctx.Req.Header.Get(HeaderAcceptEncoding), "gzip") {
 			return
 		}
 
@@ -55,7 +56,7 @@ func Gziper() Handler {
 		ctx.Next()
 
 		// delete content length after we know we have been written to
-		gzw.Header().Del("Content-Length")
+		gzw.Header().Del(HeaderContentLength)
 	}
 }
 

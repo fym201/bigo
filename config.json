@@ -14,7 +14,7 @@
 	,"HTTP_PORT":3000								//http监听端口,默认为3000
 	
 	,"HTTPS_ADDR":""								//https监听地址,默认在0.0.0.0
-	,"HTTPS_PORT":8443							//https监听地址,默认为443
+	,"HTTPS_PORT":443								//https监听地址,默认为443
 	,"HTTPS_CERT_FILE":""							//https证书文件路径
 	,"HTTPS_KEY_FILE":""							//https证书key文件路径
 	,"ENABLE_HTTPS":false							//是否开启https服务，默认false
@@ -24,10 +24,10 @@
 	,"FORCE_GZIP":true								//是否强制开启gzip,默认false,如果开启,不管客户端接不接受,都会以gzip进行传输
 	
 	,"ENABLE_MINIFY":true							//默认为true,是否对.html .js .css 进行最小化处理
-	,"STATIC_EXTENSIONS_TO_GZIP":[".js",".css"]		//使用gzip进行压缩传输的静态文件后缀,受客户端协议或FORCE_GZIP影响
+	,"STATIC_EXTENSIONS_TO_GZIP":[".js",".css"]		//使用gzip进行压缩传输的静态文件后缀,受客户端协议和ENABLE_GZIP影响
 	,"STATICS":[									//静态目录,选项数组或字符串数组
 		{
-			"PATH":"static"						//静态目录的路径
+			"PATH":"static"							//静态目录的路径
 			,"PREFIX":""							//此目录在url中的前缀，如果不设置则为/
 			,"SKIP_LOGGING":false					//默认在DEV,TEST模式下为false,在PROD模式下为true. 是否跳过log输出
 			,"INDEX_FILE":""						//如果指定，则以此文件为索引文件			
@@ -36,7 +36,7 @@
 	
 	,"RUN_MODE":"DEV"								//运行模式，DEV为开发模式，PROD为发布模式,TEST为测试模式，默认为DEV
 	,"DEV":{										//对于DEV模式下的配置，RUN_MODE为DEV时会覆盖顶级配置
-		"APP_NAME":"bigo-dev"
+		"APP_NAME":"Bigo-dev"
 	}
 	
 	,"CUSTOM":{										//自定义配置
