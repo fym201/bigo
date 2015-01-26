@@ -5,41 +5,53 @@
 //查找app所在目录下的config.json
 
 {
-	"APP_NAME":"Bigo"								//应用名称
-	,"WORKDIR":""									//工作目录,默认为运行目录
-	,"LOGDIR":""									//日志目录,在PROD模式默认为$WORKDIR/log，在DEV,TEST模式下默认为控制台输出
-	,"LOGLEVEL":1									//日志等级,1.info 2.debug 3.error 4.none,默认在DEV,TEST下为1,PROD下为3
+	"AppName":"Bigo"								//应用名称
+	,"WorkDir":""									//工作目录,默认为运行目录
+	,"LogDir":""									//日志目录,在PROD模式默认为$WorkDir/log，在DEV,TEST模式下默认为控制台输出
+	,"LogLevel":1									//日志等级,1.info 2.debug 3.error 4.none,默认在DEV,TEST下为1,PROD下为3
 	
-	,"HTTP_ADDR":""									//http监听地址,默认在0.0.0.0
-	,"HTTP_PORT":3000								//http监听端口,默认为3000
+	,"HttpAddr":""									//http监听地址,默认在0.0.0.0
+	,"HttpPort":3000								//http监听端口,默认为3000
 	
-	,"HTTPS_ADDR":""								//https监听地址,默认在0.0.0.0
-	,"HTTPS_PORT":443								//https监听地址,默认为443
-	,"HTTPS_CERT_FILE":""							//https证书文件路径
-	,"HTTPS_KEY_FILE":""							//https证书key文件路径
-	,"ENABLE_HTTPS":false							//是否开启https服务，默认false
-	,"FORCE_HTTPS":false							//是否强制将http请求转为https,在ENABLE_HTTPS为true时有效,默认为false
+	,"HttpsAddr":""									//https监听地址,默认在0.0.0.0
+	,"HttpsPort":443								//https监听地址,默认为443
+	,"HttpsCertFile":""								//https证书文件路径
+	,"HttpsKeyFile":""								//https证书key文件路径
+	,"EnableHttps":false							//是否开启https服务，默认false
+	,"ForceHttps":false								//是否强制将http请求转为https,在ENABLE_HTTPS为true时有效,默认为false
 	
-	,"ENABLE_GZIP":true								//是否开启gzip,默认true,如果开启,并且客户端接受gzip的话责对会话进行gzip压缩
-	,"FORCE_GZIP":true								//是否强制开启gzip,默认false,如果开启,不管客户端接不接受,都会以gzip进行传输
+	,"EnableGzip":true								//是否开启gzip,默认true,如果开启,并且客户端接受gzip的话责对会话进行gzip压缩
+	,"ForceGzip":true								//是否强制开启gzip,默认false,如果开启,不管客户端接不接受,都会以gzip进行传输
 	
-	,"ENABLE_MINIFY":true							//默认为true,是否对.html .js .css 进行最小化处理
-	,"STATIC_EXTENSIONS_TO_GZIP":[".js",".css"]		//使用gzip进行压缩传输的静态文件后缀,受客户端协议和ENABLE_GZIP影响
-	,"STATICS":[									//静态目录,选项数组或字符串数组
+	,"EnableMinify":true							//默认为true,是否对.html .js .css 进行最小化处理
+	,"StaticExtensionsToGzip":[".js",".css"]		//使用gzip进行压缩传输的静态文件后缀,受客户端协议和ENABLE_GZIP影响
+	,"Statics":[									//静态目录,选项数组或字符串数组
 		{
-			"PATH":"static"							//静态目录的路径
-			,"PREFIX":""							//此目录在url中的前缀，如果不设置则为/
-			,"SKIP_LOGGING":false					//默认在DEV,TEST模式下为false,在PROD模式下为true. 是否跳过log输出
-			,"INDEX_FILE":""						//如果指定，则以此文件为索引文件			
+			"Path":"static"							//静态目录的路径
+			,"Prefix":""							//此目录在url中的前缀，如果不设置则为/
+			,"SkipLogging":false					//默认在DEV,TEST模式下为false,在PROD模式下为true. 是否跳过log输出
+			,"IndexFile":""							//如果指定，则以此文件为索引文件			
 		}
 	]
 	
-	,"RUN_MODE":"DEV"								//运行模式，DEV为开发模式，PROD为发布模式,TEST为测试模式，默认为DEV
-	,"DEV":{										//对于DEV模式下的配置，RUN_MODE为DEV时会覆盖顶级配置
-		"APP_NAME":"Bigo-dev"
+	,"i18n":{										//本地化配置
+		"SubURL":""									//子目录，默认为空
+		,"Directory":"conf/locale"					//存放本地化文件的目录，默认为 "conf/locale"
+		,"CustomDirectory":"custom/conf/locale"	    //用于重载的本地化文件目录,默认为 "custom/conf/locale"
+		,"Langs":["en-US","zh-CN"]					//支持的语言，顺序是有意义的
+		,"Names":["English", "简体中文"]			//语言的本地化名称,和上面一一对应
+		,"Format":"locale_%s.ini"					//本地化文件命名风格，默认为 "locale_%s.ini"
+		,"Parameter":"lang"							//指示当前语言的 URL 参数名，默认为 "lang"
+		,"Redirect":false							//当通过 URL 参数指定语言时是否重定向，默认为 false
+		,"TmplName":"i18n"							//存放在模板中的本地化对象变量名称，默认为 "i18n"
 	}
 	
-	,"CUSTOM":{										//自定义配置
+	,"RunMode":"DEV"								//运行模式，DEV为开发模式，PROD为发布模式,TEST为测试模式，默认为DEV
+	,"DEV":{										//对于DEV模式下的配置，RUN_MODE为DEV时会覆盖顶级配置
+		"AppName":"Bigo-dev"
+	}
+	
+	,"Cutom":{										//自定义配置
 		"MONOGO_URI":""								//自定义项, 连接mongodb的uri
 		,"MONOGO_DATABASE":""						//自定义项, mongodb所使用的数据库名
 		,"SOME_CONFIG1":"some thing"				//其它自定义项

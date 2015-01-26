@@ -21,43 +21,57 @@ const (
 type SubConfig map[string]interface{}
 
 type StaticOpt struct {
-	Path        string `json:"PATH"`         //静态目录的路径
-	Prefix      string `json:"PREFIX"`       //此目录在url中的前缀，如果不设置则为/
-	SkipLogging bool   `json:"SKIP_LOGGING"` //默认在DEV,TEST模式下为false,在PROD模式下为true. 是否跳过log输出
-	IndexFile   string `json:"INDEX_FILE"`   //如果指定，则以此文件为索引文件
+	Path        string `json:"Path"`        //静态目录的路径
+	Prefix      string `json:"Prefix"`      //此目录在url中的前缀，如果不设置则为/
+	SkipLogging bool   `json:"SkipLogging"` //默认在DEV,TEST模式下为false,在PROD模式下为true. 是否跳过log输出
+	IndexFile   string `json:"IndexFile"`   //如果指定，则以此文件为索引文件
+}
+
+//本地化配置
+type I18nOpt struct {
+	SubUrl          string   `json:"SubUrl"`          //子目录，默认为空
+	Directory       string   `json:"Directory"`       //存放本地化文件的目录，默认为 "conf/locale"
+	CustomDirectory string   `json:"CustomDirectory"` //用于重载的本地化文件目录,默认为 "custom/conf/locale"
+	Langs           []string `json:"Langs"`           //支持的语言，顺序是有意义的
+	Names           []string `json:"Names"`           //语言的本地化名称,和上面一一对应
+	Format          string   `json:"Format"`          //本地化文件命名风格，默认为 "locale_%s.ini"
+	Parameter       string   `json:"Parameter"`       //指示当前语言的 URL 参数名，默认为 "lang"
+	Redirect        bool     `json:"Redirect"`        //当通过 URL 参数指定语言时是否重定向，默认为 false
+	TmplName        string   `json:"TmplName"`        //存放在模板中的本地化对象变量名称，默认为 "i18n"
 }
 
 //如果以【app -c configPath】的命令行形式指定了文件，那么直接加载这个文件，否则
 //查找当前工作目录下的config.json
 //查找app所在目录下的config.json
 type Config struct {
-	AppName  string `json:"APP_NAME"` //应用名称
-	WorkDir  string `json:"WORKDIR"`  //工作目录,默认为运行目录
-	LogDir   string `json:"LOGDIR"`   //日志目录,默认为$WORKDIR/log
-	LogLevel int    `json:"LOGLEVEL"` //日志等级,0.info 1.debug 3.error 4.none,默认在DEV,TEST下为0,PROD下为3
+	AppName  string `json:"AppName"`  //应用名称
+	WorkDir  string `json:"WorkDir"`  //工作目录,默认为运行目录
+	LogDir   string `json:"LogDir"`   //日志目录,默认为$WORKDIR/log
+	LogLevel int    `json:"LogLevel"` //日志等级,0.info 1.debug 3.error 4.none,默认在DEV,TEST下为0,PROD下为3
 
-	HttpAddr string `json:"HTTP_ADDR"` //http监听地址,默认在0.0.0.0
-	HttpPort int    `json:"HTTP_PORT"` //http监听端口,默认为3000
+	HttpAddr string `json:"HttpAddr"` //http监听地址,默认在0.0.0.0
+	HttpPort int    `json:"HttpPort"` //http监听端口,默认为3000
 
-	HttpsAddr     string `json:"HTTPS_ADDR"`      //https监听地址,默认在0.0.0.0
-	HttpsPort     int    `json:"HTTPS_PORT"`      //https监听地址,默认为443
-	HttpsCertFile string `json:"HTTPS_CERT_FILE"` //https证书文件路径
-	HttpsKeyFile  string `json:"HTTPS_KEY_FILE"`  //https证书key文件路径
-	EnableHttps   bool   `json:"ENABLE_HTTPS"`    //是否开启https服务，默认false
-	ForceHttps    bool   `json:"FORCE_HTTPS"`     //是否强制将http请求转为https,默认为false
+	HttpsAddr     string `json:"HttpsAddr"`     //https监听地址,默认在0.0.0.0
+	HttpsPort     int    `json:"HttpsPort"`     //https监听地址,默认为443
+	HttpsCertFile string `json:"HttpsCertFile"` //https证书文件路径
+	HttpsKeyFile  string `json:"HttpsKeyFile"`  //https证书key文件路径
+	EnableHttps   bool   `json:"EnableHttps"`   //是否开启https服务，默认false
+	ForceHttps    bool   `json:"ForceHttps"`    //是否强制将http请求转为https,默认为false
 
-	EnableGzip bool `json:"ENABLE_GZIP"` //是否开启gzip,默认true,如果开启,并且客户端接受gzip的话责对会话进行gzip压缩
-	ForceGzip  bool `json:"FORCE_GZIP"`  //是否强制开启gzip,默认false,如果开启,不管客户端接不接受,都会以gzip进行传输
+	EnableGzip bool `json:"EnableGzip"` //是否开启gzip,默认true,如果开启,并且客户端接受gzip的话责对会话进行gzip压缩
+	ForceGzip  bool `json:"ForceGzip"`  //是否强制开启gzip,默认false,如果开启,不管客户端接不接受,都会以gzip进行传输
 
-	EnableMinify           bool        `json:"ENABLE_MINIFY"`             //默认为true,是否对.html .js .css 进行最小化处理
-	StaticExtensionsToGzip []string    `json:"STATIC_EXTENSIONS_TO_GZIP"` //使用gzip进行压缩传输的静态文件后缀,受客户端协议或FORCE_GZIP影响
-	Statics                []StaticOpt `json:"STATICS"`                   //静态目录,数组
-	RunMode                string      `json:"RUN_MODE"`                  //运行模式，DEV为开发模式，PROD为发布模式,TEST为测试模式
-	DevOpt                 *SubConfig  `json:"DEV"`                       //对于DEV模式下的配置，RUN_MODE为DEV时会覆盖顶级配置
-	TestOpt                *SubConfig  `json:"TEST"`                      //对于TEST模式下的配置，RUN_MODE为TEST时会覆盖顶级配置
-	ProdOpt                *SubConfig  `json:"PROD"`                      //对于PROD模式下的配置，RUN_MODE为PROD时会覆盖顶级配置
+	EnableMinify           bool        `json:"EnableMinify"`           //默认为true,是否对.html .js .css 进行最小化处理
+	StaticExtensionsToGzip []string    `json:"StaticExtensionsToGzip"` //使用gzip进行压缩传输的静态文件后缀,受客户端协议或FORCE_GZIP影响
+	Statics                []StaticOpt `json:"Statics"`                //静态目录,数组
+	I18n                   I18nOpt     `json:"i18n"`                   //本地化配置
+	RunMode                string      `json:"RunMode"`                //运行模式，DEV为开发模式，PROD为发布模式,TEST为测试模式
+	DevOpt                 *SubConfig  `json:"DEV"`                    //对于DEV模式下的配置，RUN_MODE为DEV时会覆盖顶级配置
+	TestOpt                *SubConfig  `json:"TEST"`                   //对于TEST模式下的配置，RUN_MODE为TEST时会覆盖顶级配置
+	ProdOpt                *SubConfig  `json:"PROD"`                   //对于PROD模式下的配置，RUN_MODE为PROD时会覆盖顶级配置
 
-	CutomOpt map[string]interface{} `json:"CUSTOM"` //自定义选项
+	CutomOpt map[string]interface{} `json:"Cutom"` //自定义选项
 }
 
 var (
@@ -219,6 +233,22 @@ func checkConfig(conf *Config) {
 		if conf.HttpsKeyFile == "" || !utl.IsExist(conf.HttpsKeyFile) {
 			panic(fmt.Sprint("HttpsKeyFile[%s]:file not find", conf.HttpsKeyFile))
 		}
+	}
+
+	if conf.I18n.Directory == "" {
+		conf.I18n.Directory = "conf/locale"
+	}
+
+	if conf.I18n.CustomDirectory == "" {
+		conf.I18n.CustomDirectory = "custom/conf/locale"
+	}
+
+	if conf.I18n.Format == "" {
+		conf.I18n.Format = "locale_%s.ini"
+	}
+
+	if conf.I18n.TmplName == "" {
+		conf.I18n.TmplName = "i18n"
 	}
 
 }
