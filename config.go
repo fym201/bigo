@@ -122,7 +122,9 @@ func LoadConfig() (c *Config, err error) {
 
 	newBuf := make([]byte, len(buf))
 	isBegin := false //是否遇到了 //注释
+	isString := false
 	for i, ch := range buf {
+
 		if isBegin {
 			if ch == '\n' {
 				isBegin = false
@@ -131,7 +133,11 @@ func LoadConfig() (c *Config, err error) {
 			}
 			newBuf[i] = ' '
 		} else {
-			if ch == '/' && i+1 < len(buf) && buf[i+1] == '/' {
+			if ch == '"' {
+				isString = !isString
+			}
+
+			if !isString && ch == '/' && i+1 < len(buf) && buf[i+1] == '/' {
 				isBegin = true
 				newBuf[i] = ' '
 				continue
