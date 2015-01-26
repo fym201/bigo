@@ -65,6 +65,8 @@ func Logger() Handler {
 	}
 }
 
+var _defaultLogger io.Writer
+
 type LoggerWriter struct {
 	io.Writer
 	dir           string
@@ -74,7 +76,7 @@ type LoggerWriter struct {
 	logChan       chan []byte
 }
 
-func NewLoggerWriter(dir string, logInterval time.Duration) *LoggerWriter {
+func NewFileLoggerWriter(dir string, logInterval time.Duration) io.Writer {
 
 	if !utl.IsExist(dir) {
 		if err := os.Mkdir(dir, 0x644); err != nil {
@@ -92,6 +94,18 @@ func NewLoggerWriter(dir string, logInterval time.Duration) *LoggerWriter {
 	}
 	logger := LoggerWriter{dir: dir, file: file, logInterval: logInterval, fileBeginTime: now, logChan: make(chan []byte)}
 	return &logger
+}
+
+func DefaultLoggerWriter() io.Writer {
+	if _defaultLogger == nil {
+		if GetConfig().LogDir != "" {
+			_defaultLogger = NewFileLoggerWriter(GetConfig().LogDir, time.Hour*24)
+		} else {
+			_defaultLogger = os.Stdout
+		}
+	}
+
+	return _defaultLogger
 }
 
 func (log *LoggerWriter) Write(p []byte) (n int, err error) {

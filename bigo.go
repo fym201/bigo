@@ -23,7 +23,6 @@ import (
 	"os"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/fym201/bigo/utl"
 
@@ -104,11 +103,7 @@ func Classic() *Bigo {
 	conf := GetConfig()
 	var m *Bigo
 	if conf.LogLevel != LogLevelNone {
-		if conf.LogDir != "" {
-			m = NewWithLogger(NewLoggerWriter(conf.LogDir, time.Hour*24))
-		} else {
-			m = New()
-		}
+		m = NewWithLogger(DefaultLoggerWriter())
 		m.Use(Logger())
 	}
 
