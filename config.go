@@ -11,8 +11,10 @@ import (
 	"github.com/fym201/bigo/utl"
 )
 
+type LogLevel int
+
 const (
-	LogLevelNone = iota
+	LogLevelNone LogLevel = iota
 	LogLevelInfo
 	LogLevelDebug
 	LogLevelError
@@ -58,10 +60,10 @@ type TmplOpt struct {
 //查找当前工作目录下的config.json
 //查找app所在目录下的config.json
 type Config struct {
-	AppName  string `json:"AppName"`  //应用名称
-	WorkDir  string `json:"WorkDir"`  //工作目录,默认为运行目录
-	LogDir   string `json:"LogDir"`   //日志目录,默认为$WORKDIR/log
-	LogLevel int    `json:"LogLevel"` //日志等级,0.info 1.debug 3.error 4.none,默认在DEV,TEST下为0,PROD下为3
+	AppName  string   `json:"AppName"`  //应用名称
+	WorkDir  string   `json:"WorkDir"`  //工作目录,默认为运行目录
+	LogDir   string   `json:"LogDir"`   //日志目录,默认为$WORKDIR/log
+	LogLevel LogLevel `json:"LogLevel"` //日志等级,0.info 1.debug 3.error 4.none,默认在DEV,TEST下为0,PROD下为3
 
 	HttpAddr string `json:"HttpAddr"` //http监听地址,默认在0.0.0.0
 	HttpPort int    `json:"HttpPort"` //http监听端口,默认为3000
@@ -234,7 +236,7 @@ func checkConfig(conf *Config) {
 	}
 
 	if conf.LogLevel == 0 {
-		lm := map[string]int{"DEV": 1, "TEST": 1, "PROD": 3}
+		lm := map[string]LogLevel{"DEV": LogLevelInfo, "TEST": LogLevelInfo, "PROD": LogLevelError}
 
 		conf.LogLevel = lm[conf.RunMode]
 	}

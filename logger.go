@@ -71,6 +71,7 @@ func ReqLogger() Handler {
 var _defaultLoggerWriter io.Writer
 var _defaultLogger *Logger
 
+//log输出模块
 type LoggerWriter struct {
 	io.Writer
 	dir           string
@@ -80,6 +81,7 @@ type LoggerWriter struct {
 	logChan       chan []byte
 }
 
+//创建一个输出到文件的log输出对象,dir为日志目录,logInterval切换日志文件的间隔时间，默认24小时
 func NewFileLoggerWriter(dir string, logInterval time.Duration) io.Writer {
 
 	if !utl.IsExist(dir) {
@@ -100,6 +102,7 @@ func NewFileLoggerWriter(dir string, logInterval time.Duration) io.Writer {
 	return &logger
 }
 
+//默认的日志输出
 func DefaultLoggerWriter() io.Writer {
 	if _defaultLoggerWriter == nil {
 		if GetConfig().LogDir != "" {
@@ -127,6 +130,7 @@ func (log *LoggerWriter) Write(p []byte) (n int, err error) {
 
 }
 
+//日志输出器
 type Logger struct {
 	*log.Logger
 }
@@ -136,6 +140,7 @@ func NewLogger(out io.Writer, prefix string, flag int) *Logger {
 	return &logger
 }
 
+//默认日志输出器
 func DefaultLogger() *Logger {
 	if _defaultLogger == nil {
 		_defaultLogger = NewLogger(DefaultLoggerWriter(), fmt.Sprintf("[%s] ", GetConfig().AppName), 0)
@@ -143,9 +148,10 @@ func DefaultLogger() *Logger {
 	return _defaultLogger
 }
 
-func (l *Logger) Log(flag int, a ...interface{}) {
+//输出日志，level为日志级别
+func (l *Logger) Log(level LogLevel, a ...interface{}) {
 	alen := len(a)
-	if alen == 0 || (l == _defaultLogger && flag < GetConfig().LogLevel) {
+	if alen == 0 || (l == _defaultLogger && level < GetConfig().LogLevel) {
 		return
 	}
 
@@ -157,7 +163,7 @@ func (l *Logger) Log(flag int, a ...interface{}) {
 	}
 	content := fmt.Sprintf(format, args...)
 	if ColorLog {
-		switch flag {
+		switch level {
 		case LogLevelInfo:
 			content = fmt.Sprintf("\033[1;32m[INFO] %s\033[0m", content)
 		case LogLevelDebug:
@@ -166,7 +172,7 @@ func (l *Logger) Log(flag int, a ...interface{}) {
 			content = fmt.Sprintf("\033[1;31m[ERROR] %s\033[0m", content)
 		}
 	} else {
-		switch flag {
+		switch level {
 		case LogLevelInfo:
 			content = fmt.Sprintf("[INFO] %s", content)
 		case LogLevelDebug:
@@ -179,14 +185,17 @@ func (l *Logger) Log(flag int, a ...interface{}) {
 	l.Println(content)
 }
 
+//普通信息日志输出，第一个参数可以是format
 func (l *Logger) LogInfo(a ...interface{}) {
 	l.Log(LogLevelInfo, a...)
 }
 
+//调试日志输出，第一个参数可以是format
 func (l *Logger) LogDebug(a ...interface{}) {
 	l.Log(LogLevelDebug, a...)
 }
 
+//错误日志输出，第一个参数可以是format
 func (l *Logger) LogError(a ...interface{}) {
 	l.Log(LogLevelError, a...)
 }

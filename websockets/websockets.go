@@ -31,8 +31,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type LogLevel int
-
 const (
 	// Sensible defaults for the socket
 	defaultLogLevel                = bigo.LogLevelInfo
@@ -49,7 +47,7 @@ type Options struct {
 	Logger *bigo.Logger
 
 	// The LogLevel for socket logging, goes from 0 (Error) to 3 (Debug)
-	LogLevel int
+	LogLevel bigo.LogLevel
 
 	// Set to true if you want to skip logging
 	SkipLogging bool
@@ -255,7 +253,7 @@ var LogLevelStrings = []string{"Error", "Warning", "Info", "Debug"}
 
 // The options logger is only directly used while setting up the connection
 // With the default logger, it logs in the format [socket][client remote address] log message
-func (o *Options) log(message string, level int, logVars ...interface{}) {
+func (o *Options) log(message string, level bigo.LogLevel, logVars ...interface{}) {
 	if !o.SkipLogging {
 		args := append([]interface{}{"[%s] [%s] " + message, LogLevelStrings[level]}, logVars...)
 		o.Logger.Log(level, args...)
@@ -264,7 +262,7 @@ func (o *Options) log(message string, level int, logVars ...interface{}) {
 
 // The connection logger writes to the option logger using the cached remote address
 // for this connection
-func (c *Connection) log(message string, level int, logVars ...interface{}) {
+func (c *Connection) log(message string, level bigo.LogLevel, logVars ...interface{}) {
 	c.Options.log(message, level, append([]interface{}{c.remoteAddr}, logVars...)...)
 }
 
