@@ -16,9 +16,6 @@
 package bigo
 
 import (
-	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -67,18 +64,18 @@ type Bigo struct {
 	urlPrefix string // For suburl support.
 	*Router
 
-	logger *log.Logger
+	logger *Logger
 }
 
 // NewWithLogger creates a bare bones Bigo instance.
 // Use this method if you want to have full control over the middleware that is used.
 // You can specify logger output writer with this function.
-func NewWithLogger(out io.Writer) *Bigo {
+func NewWithLogger(logger *Logger) *Bigo {
 	m := &Bigo{
 		Injector: inject.New(),
 		action:   func() {},
 		Router:   NewRouter(),
-		logger:   log.New(out, fmt.Sprintf("[%s] ", GetConfig().AppName), 0),
+		logger:   logger,
 	}
 	m.Router.m = m
 	m.Map(m.logger)
@@ -94,7 +91,7 @@ func NewWithLogger(out io.Writer) *Bigo {
 // New creates a bare bones Bigo instance.
 // Use this method if you want to have full control over the middleware that is used.
 func New() *Bigo {
-	return NewWithLogger(os.Stdout)
+	return NewWithLogger(DefaultLogger())
 }
 
 // Classic creates a classic Bigo with some basic default middleware:
@@ -103,8 +100,8 @@ func Classic() *Bigo {
 	conf := GetConfig()
 	var m *Bigo
 	if conf.LogLevel != LogLevelNone {
-		m = NewWithLogger(DefaultLoggerWriter())
-		m.Use(Logger())
+		m = New()
+		m.Use(ReqLogger())
 	}
 
 	m.Use(Recovery())
@@ -216,16 +213,16 @@ func (m *Bigo) Run() {
 
 func (m *Bigo) RunHttp(addr string) {
 
-	logger := m.Injector.GetVal(reflect.TypeOf(m.logger)).Interface().(*log.Logger)
-	logger.Printf("Http listening on %s (%s)\n", addr, Env)
+	logger := m.Injector.GetVal(reflect.TypeOf(m.logger)).Interface().(*Logger)
+	logger.LogInfo("Http listening on %s (%s)\n", addr, Env)
 	if err := http.ListenAndServe(addr, m); err != nil {
 		panic(err)
 	}
 }
 
 func (m *Bigo) RunHttps(addr string, cerFile string, keyFile string) {
-	logger := m.Injector.GetVal(reflect.TypeOf(m.logger)).Interface().(*log.Logger)
-	logger.Printf("Https listening on %s (%s)\n", addr, Env)
+	logger := m.Injector.GetVal(reflect.TypeOf(m.logger)).Interface().(*Logger)
+	logger.LogInfo("Https listening on %s (%s)\n", addr, Env)
 
 	m.Use(Secure(SecureOptions{
 		SSLRedirect: true,

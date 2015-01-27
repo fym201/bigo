@@ -16,7 +16,6 @@
 package bigo
 
 import (
-	"log"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -114,7 +113,7 @@ func prepareStaticOptions(dir string, options []StaticOptions) StaticOptions {
 	return prepareStaticOption(dir, opt)
 }
 
-func staticHandler(ctx *Context, log *log.Logger, opt StaticOptions) bool {
+func staticHandler(ctx *Context, log *Logger, opt StaticOptions) bool {
 	if ctx.Req.Method != "GET" && ctx.Req.Method != "HEAD" {
 		return false
 	}
@@ -164,7 +163,7 @@ func staticHandler(ctx *Context, log *log.Logger, opt StaticOptions) bool {
 	}
 
 	if !opt.SkipLogging {
-		log.Println("[Static] Serving " + file)
+		log.LogInfo("[Static] Serving " + file)
 	}
 
 	// Add an Expires header to the static content
@@ -180,7 +179,7 @@ func staticHandler(ctx *Context, log *log.Logger, opt StaticOptions) bool {
 func Static(directory string, staticOpt ...StaticOptions) Handler {
 	opt := prepareStaticOptions(directory, staticOpt)
 
-	return func(ctx *Context, log *log.Logger) {
+	return func(ctx *Context, log *Logger) {
 		staticHandler(ctx, log, opt)
 	}
 }
@@ -195,7 +194,7 @@ func Statics(opt StaticOptions, dirs ...string) Handler {
 		opts[i] = prepareStaticOption(dirs[i], opt)
 	}
 
-	return func(ctx *Context, log *log.Logger) {
+	return func(ctx *Context, log *Logger) {
 		for i := range opts {
 			if staticHandler(ctx, log, opts[i]) {
 				return

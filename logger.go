@@ -22,6 +22,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"runtime"
 	"time"
 
@@ -35,11 +36,11 @@ func init() {
 }
 
 // Logger returns a middleware handler that logs the request as it goes in and the response as it goes out.
-func Logger() Handler {
-	return func(ctx *Context, log *log.Logger) {
+func ReqLogger() Handler {
+	return func(ctx *Context, log *Logger) {
 		start := time.Now()
 
-		log.Printf("Started %s %s for %s", ctx.Req.Method, ctx.Req.RequestURI, ctx.RemoteAddr())
+		log.LogInfo("Started %s %s for %s", ctx.Req.Method, ctx.Req.RequestURI, ctx.RemoteAddr())
 
 		rw := ctx.Resp.(ResponseWriter)
 		ctx.Next()
@@ -48,24 +49,27 @@ func Logger() Handler {
 		if ColorLog {
 			switch rw.Status() {
 			case 200, 201, 202:
-				content = fmt.Sprintf("\033[1;32m%s\033[0m", content)
+				content = fmt.Sprintf("\033[1;32m[INFO] %s\033[0m", content)
 			case 301, 302:
-				content = fmt.Sprintf("\033[1;37m%s\033[0m", content)
+				content = fmt.Sprintf("\033[1;37m[INFO] %s\033[0m", content)
 			case 304:
-				content = fmt.Sprintf("\033[1;33m%s\033[0m", content)
+				content = fmt.Sprintf("\033[1;33m[INFO] %s\033[0m", content)
 			case 401, 403:
-				content = fmt.Sprintf("\033[4;31m%s\033[0m", content)
+				content = fmt.Sprintf("\033[4;31m[INFO] %s\033[0m", content)
 			case 404:
-				content = fmt.Sprintf("\033[1;31m%s\033[0m", content)
+				content = fmt.Sprintf("\033[1;31m[INFO] %s\033[0m", content)
 			case 500:
-				content = fmt.Sprintf("\033[1;36m%s\033[0m", content)
+				content = fmt.Sprintf("\033[1;36m[INFO] %s\033[0m", content)
 			}
+		} else {
+			content = fmt.Sprintf("[INFO] %s", content)
 		}
 		log.Println(content)
 	}
 }
 
-var _defaultLogger io.Writer
+var _defaultLoggerWriter io.Writer
+var _defaultLogger *Logger
 
 type LoggerWriter struct {
 	io.Writer
@@ -97,15 +101,15 @@ func NewFileLoggerWriter(dir string, logInterval time.Duration) io.Writer {
 }
 
 func DefaultLoggerWriter() io.Writer {
-	if _defaultLogger == nil {
+	if _defaultLoggerWriter == nil {
 		if GetConfig().LogDir != "" {
-			_defaultLogger = NewFileLoggerWriter(GetConfig().LogDir, time.Hour*24)
+			_defaultLoggerWriter = NewFileLoggerWriter(GetConfig().LogDir, time.Hour*24)
 		} else {
-			_defaultLogger = os.Stdout
+			_defaultLoggerWriter = os.Stdout
 		}
 	}
 
-	return _defaultLogger
+	return _defaultLoggerWriter
 }
 
 func (log *LoggerWriter) Write(p []byte) (n int, err error) {
@@ -121,4 +125,68 @@ func (log *LoggerWriter) Write(p []byte) (n int, err error) {
 	}
 	return log.file.Write(p)
 
+}
+
+type Logger struct {
+	*log.Logger
+}
+
+func NewLogger(out io.Writer, prefix string, flag int) *Logger {
+	logger := Logger{log.New(out, prefix, flag)}
+	return &logger
+}
+
+func DefaultLogger() *Logger {
+	if _defaultLogger == nil {
+		_defaultLogger = NewLogger(DefaultLoggerWriter(), fmt.Sprintf("[%s] ", GetConfig().AppName), 0)
+	}
+	return _defaultLogger
+}
+
+func (l *Logger) Log(flag int, a ...interface{}) {
+	alen := len(a)
+	if alen == 0 || (l == _defaultLogger && flag < GetConfig().LogLevel) {
+		return
+	}
+
+	var format string
+	args := a
+	if reflect.TypeOf(a[0]).Kind() == reflect.String {
+		format = a[0].(string)
+		args = a[1:]
+	}
+	content := fmt.Sprintf(format, args...)
+	if ColorLog {
+		switch flag {
+		case LogLevelInfo:
+			content = fmt.Sprintf("\033[1;32m[INFO] %s\033[0m", content)
+		case LogLevelDebug:
+			content = fmt.Sprintf("\033[1;37m[DEBUG] %s\033[0m", content)
+		case LogLevelError:
+			content = fmt.Sprintf("\033[1;31m[ERROR] %s\033[0m", content)
+		}
+	} else {
+		switch flag {
+		case LogLevelInfo:
+			content = fmt.Sprintf("[INFO] %s", content)
+		case LogLevelDebug:
+			content = fmt.Sprintf("[DEBUG] %s", content)
+		case LogLevelError:
+			content = fmt.Sprintf("[ERROR] %s", content)
+		}
+	}
+
+	l.Println(content)
+}
+
+func (l *Logger) LogInfo(a ...interface{}) {
+	l.Log(LogLevelInfo, a...)
+}
+
+func (l *Logger) LogDebug(a ...interface{}) {
+	l.Log(LogLevelDebug, a...)
+}
+
+func (l *Logger) LogError(a ...interface{}) {
+	l.Log(LogLevelError, a...)
 }

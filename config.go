@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	LogLevelInfo = iota + 1
+	LogLevelNone = iota
+	LogLevelInfo
 	LogLevelDebug
 	LogLevelError
-	LogLevelNone
 )
 
 type SubConfig map[string]interface{}

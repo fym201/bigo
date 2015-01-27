@@ -21,10 +21,8 @@ package websockets
 import (
 	"errors"
 	"io"
-	"log"
 	"net"
 	"net/http"
-	"os"
 	"reflect"
 	"regexp"
 	"time"
@@ -36,14 +34,8 @@ import (
 type LogLevel int
 
 const (
-	// Log levels 0-4. Use to set the log level you wish to go for.
-	LEVEL_ERROR LogLevel = iota
-	LEVEL_WARNING
-	LEVEL_INFO
-	LEVEL_DEBUG
-
 	// Sensible defaults for the socket
-	defaultLogLevel                = LEVEL_INFO
+	defaultLogLevel                = bigo.LogLevelInfo
 	defaultWriteWait               = 60 * time.Second
 	defaultPongWait                = 60 * time.Second
 	defaultPingPeriod              = (defaultPongWait * 8 / 10)
@@ -54,10 +46,10 @@ const (
 
 type Options struct {
 	// The logger to use for socket logging
-	Logger *log.Logger
+	Logger *bigo.Logger
 
 	// The LogLevel for socket logging, goes from 0 (Error) to 3 (Debug)
-	LogLevel LogLevel
+	LogLevel int
 
 	// Set to true if you want to skip logging
 	SkipLogging bool
@@ -263,18 +255,17 @@ var LogLevelStrings = []string{"Error", "Warning", "Info", "Debug"}
 
 // The options logger is only directly used while setting up the connection
 // With the default logger, it logs in the format [socket][client remote address] log message
-func (o *Options) log(message string, level LogLevel, logVars ...interface{}) {
-	if level <= o.LogLevel && !o.SkipLogging {
-		o.Logger.Printf("[%s] [%s] "+message, append([]interface{}{LogLevelStrings[level]}, logVars...)...)
+func (o *Options) log(message string, level int, logVars ...interface{}) {
+	if !o.SkipLogging {
+		args := append([]interface{}{"[%s] [%s] " + message, LogLevelStrings[level]}, logVars...)
+		o.Logger.Log(level, args...)
 	}
 }
 
 // The connection logger writes to the option logger using the cached remote address
 // for this connection
-func (c *Connection) log(message string, level LogLevel, logVars ...interface{}) {
-	if level <= c.LogLevel {
-		c.Options.log(message, level, append([]interface{}{c.remoteAddr}, logVars...)...)
-	}
+func (c *Connection) log(message string, level int, logVars ...interface{}) {
+	c.Options.log(message, level, append([]interface{}{c.remoteAddr}, logVars...)...)
 }
 
 // Set the gorilla websocket handler options according to given options and set a default pong
@@ -283,7 +274,7 @@ func (c *Connection) setSocketOptions() {
 	c.ws.SetReadLimit(c.MaxMessageSize)
 	c.keepAlive()
 	c.ws.SetPongHandler(func(string) error {
-		c.log("Received Pong from Client", LEVEL_DEBUG)
+		c.log("Received Pong from Client", bigo.LogLevelDebug)
 		c.keepAlive()
 		return nil
 	})
@@ -307,18 +298,18 @@ func (c *Connection) Close(closeCode int) error {
 	c.ws.SetReadDeadline(time.Now())
 
 	// Send close message to the client
-	c.log("Sending close message to client", LEVEL_DEBUG)
+	c.log("Sending close message to client", bigo.LogLevelDebug)
 	c.ws.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, ""), time.Now().Add(c.WriteWait))
 
 	// If the connection can not be closed, return the error
-	c.log("Closing websocket connection", LEVEL_DEBUG)
+	c.log("Closing websocket connection", bigo.LogLevelDebug)
 	if err := c.ws.Close(); err != nil {
-		c.log("Connection could not be closed: %s", LEVEL_ERROR, err.Error())
+		c.log("Connection could not be closed: %s", bigo.LogLevelError, err.Error())
 		return err
 	}
 
 	// Send disconnect message to the next handler
-	c.log("Sending disconnect to handler", LEVEL_DEBUG)
+	c.log("Sending disconnect to handler", bigo.LogLevelDebug)
 	c.Done <- true
 
 	// Close disconnect and error channels this connection was sending on
@@ -330,31 +321,31 @@ func (c *Connection) Close(closeCode int) error {
 
 // Ping the client through the websocket
 func (c *Connection) ping() error {
-	c.log("Pinging socket", LEVEL_DEBUG)
+	c.log("Pinging socket", bigo.LogLevelDebug)
 	return c.ws.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(c.WriteWait))
 }
 
 // Start the ticker used for pinging the client
 func (c *Connection) startTicker() {
-	c.log("Pinging every %v, first at %v", LEVEL_DEBUG, c.PingPeriod, time.Now().Add(c.PingPeriod))
+	c.log("Pinging every %v, first at %v", bigo.LogLevelDebug, c.PingPeriod, time.Now().Add(c.PingPeriod))
 	c.ticker = time.NewTicker(c.PingPeriod)
 }
 
 // Stop the ticker used for pinging the client
 func (c *Connection) stopTicker() {
-	c.log("Stopped pinging socket", LEVEL_DEBUG)
+	c.log("Stopped pinging socket", bigo.LogLevelDebug)
 	c.ticker.Stop()
 }
 
 // Keep the connection alive by refreshing the deadlines.
 func (c *Connection) keepAlive() {
-	c.log("Setting read deadline to %v", LEVEL_DEBUG, time.Now().Add(c.PongWait))
+	c.log("Setting read deadline to %v", bigo.LogLevelDebug, time.Now().Add(c.PongWait))
 	c.ws.SetReadDeadline(time.Now().Add(c.PongWait))
 	if c.WriteWait == 0 {
-		c.log("Write deadline set to 0, will never expire", LEVEL_DEBUG)
+		c.log("Write deadline set to 0, will never expire", bigo.LogLevelDebug)
 		c.ws.SetWriteDeadline(time.Time{})
 	} else {
-		c.log("Setting write deadline to %v", LEVEL_DEBUG, time.Now().Add(c.WriteWait))
+		c.log("Setting write deadline to %v", bigo.LogLevelDebug, time.Now().Add(c.WriteWait))
 		c.ws.SetWriteDeadline(time.Now().Add(c.WriteWait))
 	}
 }
@@ -375,7 +366,7 @@ func (c *Connection) ErrorChannel() chan error {
 // Except for the send channel, since it should be closed by the handler sending on it.
 func (c *MessageConnection) Close(closeCode int) error {
 	// Call close on the base connection
-	c.log("Closing websocket connection", LEVEL_DEBUG)
+	c.log("Closing websocket connection", bigo.LogLevelDebug)
 	err := c.Connection.Close(closeCode)
 
 	if err != nil {
@@ -384,7 +375,7 @@ func (c *MessageConnection) Close(closeCode int) error {
 
 	// Do not close the receiver here since it would send nil
 	// Just let go
-	c.log("Connection closed", LEVEL_INFO)
+	c.log("Connection closed", bigo.LogLevelInfo)
 
 	return nil
 }
@@ -404,7 +395,7 @@ func (c *MessageConnection) send() {
 	c.startTicker()
 	defer func() {
 		c.stopTicker()
-		c.log("Goroutine sending to websocket has been closed", LEVEL_DEBUG)
+		c.log("Goroutine sending to websocket has been closed", bigo.LogLevelDebug)
 	}()
 
 	for {
@@ -412,14 +403,14 @@ func (c *MessageConnection) send() {
 		// Receiving a message from the next handler
 		case message, ok := <-c.Sender:
 			if !ok {
-				c.log("Sender channel has been closed", LEVEL_ERROR)
+				c.log("Sender channel has been closed", bigo.LogLevelError)
 				c.disconnect <- errors.New("Sender channel has been closed")
 				return
 			}
 			// Write the message as a byte array to the socket
-			c.log("Writing %s to socket", LEVEL_DEBUG, message)
+			c.log("Writing %s to socket", bigo.LogLevelDebug, message)
 			if err := c.write(websocket.TextMessage, message); err != nil {
-				c.log("Error writing to socket: %s", LEVEL_ERROR, err)
+				c.log("Error writing to socket: %s", bigo.LogLevelError, err)
 				c.disconnect <- err
 				return
 			}
@@ -428,9 +419,9 @@ func (c *MessageConnection) send() {
 		// Ping the client
 		case <-c.ticker.C:
 			err := c.ping()
-			c.log("%s", LEVEL_DEBUG, err)
+			c.log("%s", bigo.LogLevelDebug, err)
 			if err := c.ping(); err != nil {
-				c.log("Error pinging socket: %s", LEVEL_ERROR, err)
+				c.log("Error pinging socket: %s", bigo.LogLevelError, err)
 				c.disconnect <- err
 				return
 			}
@@ -445,19 +436,19 @@ func (c *MessageConnection) send() {
 func (c *MessageConnection) recv() {
 	// Defer decrementing the wait group counter and closing the connection
 	defer func() {
-		c.log("Goroutine receiving from websocket has been closed", LEVEL_DEBUG)
+		c.log("Goroutine receiving from websocket has been closed", bigo.LogLevelDebug)
 	}()
 
 	for {
 		// Read a message from the client
 		_, message, err := c.ws.ReadMessage()
 		if err != nil {
-			c.log("Error reading from socket: %s", LEVEL_ERROR, err)
+			c.log("Error reading from socket: %s", bigo.LogLevelError, err)
 			c.disconnect <- err
 			return
 		}
 		// Send the message as a string to the next handler
-		c.log("Read message from socket, %s", LEVEL_DEBUG, string(message))
+		c.log("Read message from socket, %s", bigo.LogLevelDebug, string(message))
 		c.Receiver <- string(message)
 		c.keepAlive()
 	}
@@ -474,7 +465,7 @@ func (c *MessageConnection) mapChannels(ctx *bigo.Context) {
 // Except for the send channel, since it should be closed by the handler sending on it.
 func (c *JSONConnection) Close(closeCode int) error {
 	// Call close on the base connection
-	c.log("Closing websocket connection", LEVEL_DEBUG)
+	c.log("Closing websocket connection", bigo.LogLevelDebug)
 	err := c.Connection.Close(closeCode)
 	if err != nil {
 		return err
@@ -482,7 +473,7 @@ func (c *JSONConnection) Close(closeCode int) error {
 
 	// Do not close the receiver here since it would send nil
 	// Just let go
-	c.log("Connection closed", LEVEL_INFO)
+	c.log("Connection closed", bigo.LogLevelInfo)
 
 	return nil
 }
@@ -499,7 +490,7 @@ func (c *JSONConnection) send() {
 	c.startTicker()
 	defer func() {
 		c.stopTicker()
-		c.log("Goroutine sending to websocket has been closed", LEVEL_DEBUG)
+		c.log("Goroutine sending to websocket has been closed", bigo.LogLevelDebug)
 	}()
 
 	// Creating the select cases for the channel select
@@ -520,13 +511,13 @@ func (c *JSONConnection) send() {
 		// Receiving a message from the next handler
 		case senderSend:
 			if !ok {
-				c.log("Sender channel has been closed", LEVEL_ERROR)
+				c.log("Sender channel has been closed", bigo.LogLevelError)
 				c.disconnect <- errors.New("Sender channel has been closed")
 				return
 			}
-			c.log("Writing %v: %v to socket", LEVEL_DEBUG, message.Type(), message.Interface())
+			c.log("Writing %v: %v to socket", bigo.LogLevelDebug, message.Type(), message.Interface())
 			if err := c.ws.WriteJSON(message.Interface()); err != nil {
-				c.log("Error writing to socket: %s", LEVEL_ERROR, err)
+				c.log("Error writing to socket: %s", bigo.LogLevelError, err)
 				c.disconnect <- err
 				break
 			}
@@ -534,7 +525,7 @@ func (c *JSONConnection) send() {
 		// Pinging the client
 		case tickerTick:
 			if err := c.ping(); err != nil {
-				c.log("Error pinging socket: %s", LEVEL_ERROR, err)
+				c.log("Error pinging socket: %s", bigo.LogLevelError, err)
 				c.disconnect <- err
 				return
 			}
@@ -551,17 +542,17 @@ func (c *JSONConnection) recv() {
 
 		err := c.ws.ReadJSON(message.Interface())
 		if err != nil {
-			c.log("Error reading from socket: %s", LEVEL_ERROR, err)
+			c.log("Error reading from socket: %s", bigo.LogLevelError, err)
 			c.disconnect <- err
 			break
 		}
 
 		// Send the message to the next handler
-		c.log("Read message from socket: %v: %v", LEVEL_DEBUG, message.Type(), message.Interface())
+		c.log("Read message from socket: %v: %v", bigo.LogLevelDebug, message.Type(), message.Interface())
 		c.Receiver.Send(message)
 	}
 
-	c.log("Goroutine receiving from websocket has been closed", LEVEL_DEBUG)
+	c.log("Goroutine receiving from websocket has been closed", bigo.LogLevelDebug)
 }
 
 // Creates a new empty message of the given struct type
@@ -648,7 +639,7 @@ func newConnection(ws *websocket.Conn, o *Options) *Connection {
 func newOptions(options []*Options) *Options {
 
 	o := Options{
-		log.New(bigo.DefaultLoggerWriter(), "[WS] ", 0),
+		bigo.NewLogger(bigo.DefaultLoggerWriter(), "[WS] ", 0),
 		defaultLogLevel,
 		false,
 		defaultWriteWait,
@@ -666,11 +657,11 @@ func newOptions(options []*Options) *Options {
 
 	conf := bigo.GetConfig()
 	if conf.LogLevel == bigo.LogLevelNone || conf.LogLevel == bigo.LogLevelError {
-		o.LogLevel = LEVEL_ERROR
+		o.LogLevel = bigo.LogLevelError
 	} else if conf.LogLevel == bigo.LogLevelDebug {
-		o.LogLevel = LEVEL_DEBUG
+		o.LogLevel = bigo.LogLevelDebug
 	} else {
-		o.LogLevel = LEVEL_INFO
+		o.LogLevel = bigo.LogLevelInfo
 	}
 
 	// map the given values to the options
@@ -695,29 +686,29 @@ func makeChanOfType(typ reflect.Type, chanBuffer int) reflect.Value {
 // Upgrade the connection to a websocket connection
 func upgradeRequest(resp http.ResponseWriter, req *http.Request, o *Options) (*websocket.Conn, int, error) {
 	if req.Method != "GET" {
-		o.log("Method %s is not allowed", LEVEL_WARNING, req.RemoteAddr, req.Method)
+		o.log("Method %s is not allowed", bigo.LogLevelDebug, req.RemoteAddr, req.Method)
 		return nil, http.StatusMethodNotAllowed, errors.New("Method not allowed")
 	}
 
 	if bigo.Env == bigo.Prod {
 		if r, err := regexp.MatchString("https?://"+req.Host+"$", req.Header.Get("Origin")); !r || err != nil {
-			o.log("Origin %s is not allowed", LEVEL_WARNING, req.RemoteAddr, req.Host)
+			o.log("Origin %s is not allowed", bigo.LogLevelDebug, req.RemoteAddr, req.Host)
 			return nil, http.StatusForbidden, errors.New("Origin not allowed")
 		}
 	}
 
-	o.log("Request to %s has been allowed for origin %s", LEVEL_DEBUG, req.RemoteAddr, req.Host, req.Header.Get("Origin"))
+	o.log("Request to %s has been allowed for origin %s", bigo.LogLevelDebug, req.RemoteAddr, req.Host, req.Header.Get("Origin"))
 
 	ws, err := websocket.Upgrade(resp, req, nil, 1024, 1024)
 	if handshakeErr, ok := err.(websocket.HandshakeError); ok {
-		o.log("Handshake failed: %s", LEVEL_WARNING, req.RemoteAddr, handshakeErr)
+		o.log("Handshake failed: %s", bigo.LogLevelDebug, req.RemoteAddr, handshakeErr)
 		return nil, http.StatusBadRequest, handshakeErr
 	} else if err != nil {
-		o.log("Handshake failed: %s", LEVEL_WARNING, req.RemoteAddr, err)
+		o.log("Handshake failed: %s", bigo.LogLevelDebug, req.RemoteAddr, err)
 		return nil, http.StatusBadRequest, err
 	}
 
-	o.log("Connection established", LEVEL_INFO, req.RemoteAddr)
+	o.log("Connection established", bigo.LogLevelInfo, req.RemoteAddr)
 	return ws, http.StatusOK, nil
 }
 
