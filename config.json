@@ -8,7 +8,7 @@
 	"AppName":"Bigo"								//应用名称
 	,"WorkDir":""									//工作目录,默认为运行目录
 	,"LogDir":""									//日志目录,在PROD模式默认为$WorkDir/log，在DEV,TEST模式下默认为控制台输出
-	,"LogLevel":1									//日志等级,1.info 2.debug 3.error 4.none,默认在DEV,TEST下为1,PROD下为3
+	,"LogLevel":1									//日志等级,0.none 1.info 2.debug 3.error ,默认在DEV,TEST下为1,PROD下为3
 	
 	,"HttpAddr":""									//http监听地址,默认在0.0.0.0
 	,"HttpPort":3000								//http监听端口,默认为3000

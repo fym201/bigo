@@ -63,7 +63,7 @@ type Config struct {
 	AppName  string   `json:"AppName"`  //应用名称
 	WorkDir  string   `json:"WorkDir"`  //工作目录,默认为运行目录
 	LogDir   string   `json:"LogDir"`   //日志目录,默认为$WORKDIR/log
-	LogLevel LogLevel `json:"LogLevel"` //日志等级,0.info 1.debug 3.error 4.none,默认在DEV,TEST下为0,PROD下为3
+	LogLevel LogLevel `json:"LogLevel"` //日志等级,0.none 1.info 2.debug 3.error ,默认在DEV,TEST下为1,PROD下为3
 
 	HttpAddr string `json:"HttpAddr"` //http监听地址,默认在0.0.0.0
 	HttpPort int    `json:"HttpPort"` //http监听端口,默认为3000
