@@ -12,8 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-// Package i18n is a middleware that provides app Internationalization and Localization of Macaron.
-package i18n
+package bigo
 
 import (
 	"fmt"
@@ -22,18 +21,11 @@ import (
 
 	"github.com/Unknwon/i18n"
 
-	"github.com/fym201/bigo"
 	"github.com/fym201/bigo/utl"
 )
 
-const _VERSION = "0.0.6"
-
-func Version() string {
-	return _VERSION
-}
-
 // Initialized language type list.
-func initLocales(opt Options) {
+func initLocales(opt I18nOptions) {
 	for i, lang := range opt.Langs {
 		fname := fmt.Sprintf(opt.Format, lang)
 		// Append custom locale file.
@@ -59,8 +51,8 @@ func (l Locale) Language() string {
 	return l.Lang
 }
 
-// Options represents a struct for specifying configuration options for the i18n middleware.
-type Options struct {
+// I18nOptions represents a struct for specifying configuration options for the i18n middleware.
+type I18nOptions struct {
 	// Suburl of path. Default is empty.
 	SubURL string
 	// Directory to load locale files. Default is "conf/locale"
@@ -81,23 +73,23 @@ type Options struct {
 	TmplName string
 }
 
-func prepareOptions(options []Options) Options {
-	var opt Options
+func prepareI18nOptions(options []I18nOptions) I18nOptions {
+	var opt I18nOptions
 	if len(options) > 0 {
 		opt = options[0]
 	}
 
 	if len(opt.SubURL) == 0 {
-		opt.SubURL = bigo.GetConfig().I18n.SubUrl
+		opt.SubURL = GetConfig().I18n.SubUrl
 	}
 
 	opt.SubURL = strings.TrimSuffix(opt.SubURL, "/")
 
 	if len(opt.Langs) == 0 {
-		opt.Langs = bigo.GetConfig().I18n.Langs
+		opt.Langs = GetConfig().I18n.Langs
 	}
 	if len(opt.Names) == 0 {
-		opt.Names = bigo.GetConfig().I18n.Names
+		opt.Names = GetConfig().I18n.Names
 	}
 	if len(opt.Langs) == 0 {
 		panic("no language is specified")
@@ -106,22 +98,22 @@ func prepareOptions(options []Options) Options {
 	}
 
 	if len(opt.Directory) == 0 {
-		opt.Directory = bigo.GetConfig().I18n.Directory
+		opt.Directory = GetConfig().I18n.Directory
 	}
 	if len(opt.CustomDirectory) == 0 {
-		opt.CustomDirectory = bigo.GetConfig().I18n.CustomDirectory
+		opt.CustomDirectory = GetConfig().I18n.CustomDirectory
 	}
 	if len(opt.Format) == 0 {
-		opt.Format = bigo.GetConfig().I18n.Format
+		opt.Format = GetConfig().I18n.Format
 	}
 	if len(opt.Parameter) == 0 {
-		opt.Parameter = bigo.GetConfig().I18n.Parameter
+		opt.Parameter = GetConfig().I18n.Parameter
 	}
 	if !opt.Redirect {
-		opt.Redirect = bigo.GetConfig().I18n.Redirect
+		opt.Redirect = GetConfig().I18n.Redirect
 	}
 	if len(opt.TmplName) == 0 {
-		opt.TmplName = bigo.GetConfig().I18n.TmplName
+		opt.TmplName = GetConfig().I18n.TmplName
 	}
 
 	return opt
@@ -134,10 +126,10 @@ type LangType struct {
 // I18n is a middleware provides localization layer for your application.
 // Paramenter langs must be in the form of "en-US", "zh-CN", etc.
 // Otherwise it may not recognize browser input.
-func I18n(options ...Options) bigo.Handler {
-	opt := prepareOptions(options)
+func I18n(options ...I18nOptions) Handler {
+	opt := prepareI18nOptions(options)
 	initLocales(opt)
-	return func(ctx *bigo.Context) {
+	return func(ctx *Context) {
 		isNeedRedir := false
 		hasCookie := false
 
@@ -199,7 +191,7 @@ func I18n(options ...Options) bigo.Handler {
 		// Set language properties.
 		locale := Locale{i18n.Locale{lang}}
 		ctx.Map(locale)
-		ctx.Locale = locale
+		ctx.ILocale = locale
 		ctx.Data[opt.TmplName] = locale
 		ctx.Data["Tr"] = i18n.Tr
 		ctx.Data["Lang"] = locale.Lang
