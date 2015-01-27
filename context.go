@@ -35,7 +35,7 @@ import (
 )
 
 // Locale reprents a localization interface.
-type Locale interface {
+type ILocale interface {
 	Language() string
 	Tr(string, ...interface{}) string
 }
@@ -83,7 +83,7 @@ type Context struct {
 	Resp   ResponseWriter
 	params Params
 	Render // Not nil only if you use macaran.Render middleware.
-	Locale
+	ILocale
 	Data map[string]interface{}
 }
 

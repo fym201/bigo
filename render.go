@@ -278,15 +278,15 @@ func (ts *templateSet) Set(name string, opt *RenderOptions) *template.Template {
 }
 
 func (ts *templateSet) Get(name string) *template.Template {
-	ts.lock.RLock()
-	defer ts.lock.RUnlock()
+	//ts.lock.RLock()
+	//defer ts.lock.RUnlock()
 
 	return ts.sets[name]
 }
 
 func (ts *templateSet) GetDir(name string) string {
-	ts.lock.RLock()
-	defer ts.lock.RUnlock()
+	//ts.lock.RLock()
+	//defer ts.lock.RUnlock()
 
 	return ts.dirs[name]
 }

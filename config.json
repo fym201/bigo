@@ -35,7 +35,8 @@
 	]
 	
 	,"i18n":{										//本地化配置
-		"SubURL":""									//子目录，默认为空
+		"Enable":false								//是否开启本地化支持，默认为false
+		,"SubURL":""								//子目录，默认为空
 		,"Directory":"conf/locale"					//存放本地化文件的目录，默认为 "conf/locale"
 		,"CustomDirectory":"custom/conf/locale"	    //用于重载的本地化文件目录,默认为 "custom/conf/locale"
 		,"Langs":["en-US","zh-CN"]					//支持的语言，顺序是有意义的
@@ -44,6 +45,17 @@
 		,"Parameter":"lang"							//指示当前语言的 URL 参数名，默认为 "lang"
 		,"Redirect":false							//当通过 URL 参数指定语言时是否重定向，默认为 false
 		,"TmplName":"i18n"							//存放在模板中的本地化对象变量名称，默认为 "i18n"
+	}
+	
+	,"Tmpl":{										//模板引擎配置
+		"Enable":false								//是否启动模板引擎，默认为false
+		,"Directory":"views"						//模板文件目录，默认为 "views"
+		,"Extensions":[".tmpl", ".html"]			//模板文件后缀，默认为 [".tmpl", ".html"]
+		,"Delims":["{{", "}}"]						//模板语法分隔符，默认为 ["{{", "}}"]
+		,"Charset":"UTF-8"							//追加的 Content-Type 头信息，默认为 "UTF-8"
+		,"IndentJSON":false							//渲染具有缩进格式的 JSON，默认为不缩进
+		,"IndentXML":false							//渲染具有缩进格式的 XML，默认为不缩进
+		,"HTMLContentType":"text/html"				//默认为 "text/html"
 	}
 	
 	,"RunMode":"DEV"								//运行模式，DEV为开发模式，PROD为发布模式,TEST为测试模式，默认为DEV

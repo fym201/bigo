@@ -118,6 +118,22 @@ func Classic() *Bigo {
 		mopt := StaticOptions{opt.Prefix, opt.SkipLogging, opt.IndexFile, nil, nil}
 		m.Use(Static(opt.Path, mopt))
 	}
+
+	if conf.Tmpl != nil && conf.Tmpl.Enable {
+		m.Use(Renderer(RenderOptions{
+			Directory:       conf.Tmpl.Directory,
+			Extensions:      conf.Tmpl.Extensions,
+			Delims:          Delims{conf.Tmpl.Delims[0], conf.Tmpl.Delims[1]},
+			Charset:         conf.Tmpl.Charset,
+			IndentJSON:      conf.Tmpl.IndentJSON,
+			IndentXML:       conf.Tmpl.IndentXML,
+			HTMLContentType: conf.Tmpl.HTMLContentType,
+		}))
+	}
+
+	if conf.I18n != nil && conf.I18n.Enable {
+		m.Use(I18n())
+	}
 	return m
 }
 

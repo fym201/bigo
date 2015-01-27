@@ -20,6 +20,7 @@ const (
 
 type SubConfig map[string]interface{}
 
+//静态文件配置
 type StaticOpt struct {
 	Path        string `json:"Path"`        //静态目录的路径
 	Prefix      string `json:"Prefix"`      //此目录在url中的前缀，如果不设置则为/
@@ -29,6 +30,7 @@ type StaticOpt struct {
 
 //本地化配置
 type I18nOpt struct {
+	Enable          bool     `json:"Enable"`          //是否开启
 	SubUrl          string   `json:"SubUrl"`          //子目录，默认为空
 	Directory       string   `json:"Directory"`       //存放本地化文件的目录，默认为 "conf/locale"
 	CustomDirectory string   `json:"CustomDirectory"` //用于重载的本地化文件目录,默认为 "custom/conf/locale"
@@ -38,6 +40,18 @@ type I18nOpt struct {
 	Parameter       string   `json:"Parameter"`       //指示当前语言的 URL 参数名，默认为 "lang"
 	Redirect        bool     `json:"Redirect"`        //当通过 URL 参数指定语言时是否重定向，默认为 false
 	TmplName        string   `json:"TmplName"`        //存放在模板中的本地化对象变量名称，默认为 "i18n"
+}
+
+//模板引擎配置
+type TmplOpt struct {
+	Enable          bool     `json:"Enable"`          //是否启动模板引擎，默认为false
+	Directory       string   `json:"Directory"`       //模板文件目录，默认为 "views"
+	Extensions      []string `json:"Extensions"`      //模板文件后缀，默认为 [".tmpl", ".html"]
+	Delims          []string `json:"Delims"`          //模板语法分隔符，默认为 ["{{", "}}"]
+	Charset         string   `json:"Charset"`         //追加的 Content-Type 头信息，默认为 "UTF-8"
+	IndentJSON      bool     `json:"IndentJSON"`      //渲染具有缩进格式的 JSON，默认为不缩进
+	IndentXML       bool     `json:"IndentXML"`       //渲染具有缩进格式的 XML，默认为不缩进
+	HTMLContentType string   `json:"HTMLContentType"` //默认为 "text/html"
 }
 
 //如果以【app -c configPath】的命令行形式指定了文件，那么直接加载这个文件，否则
@@ -65,7 +79,8 @@ type Config struct {
 	EnableMinify           bool        `json:"EnableMinify"`           //默认为true,是否对.html .js .css 进行最小化处理
 	StaticExtensionsToGzip []string    `json:"StaticExtensionsToGzip"` //使用gzip进行压缩传输的静态文件后缀,受客户端协议或FORCE_GZIP影响
 	Statics                []StaticOpt `json:"Statics"`                //静态目录,数组
-	I18n                   I18nOpt     `json:"i18n"`                   //本地化配置
+	I18n                   *I18nOpt    `json:"i18n"`                   //本地化配置
+	Tmpl                   *TmplOpt    `json:"Tmpl"`                   //模板引擎配置
 	RunMode                string      `json:"RunMode"`                //运行模式，DEV为开发模式，PROD为发布模式,TEST为测试模式
 	DevOpt                 *SubConfig  `json:"DEV"`                    //对于DEV模式下的配置，RUN_MODE为DEV时会覆盖顶级配置
 	TestOpt                *SubConfig  `json:"TEST"`                   //对于TEST模式下的配置，RUN_MODE为TEST时会覆盖顶级配置
@@ -241,20 +256,45 @@ func checkConfig(conf *Config) {
 		}
 	}
 
-	if conf.I18n.Directory == "" {
-		conf.I18n.Directory = "conf/locale"
+	if conf.I18n != nil && conf.I18n.Enable {
+		if conf.I18n.Directory == "" {
+			conf.I18n.Directory = "conf/locale"
+		}
+
+		if conf.I18n.CustomDirectory == "" {
+			conf.I18n.CustomDirectory = "custom/conf/locale"
+		}
+
+		if conf.I18n.Format == "" {
+			conf.I18n.Format = "locale_%s.ini"
+		}
+
+		if conf.I18n.TmplName == "" {
+			conf.I18n.TmplName = "i18n"
+		}
+
 	}
 
-	if conf.I18n.CustomDirectory == "" {
-		conf.I18n.CustomDirectory = "custom/conf/locale"
-	}
+	if conf.Tmpl != nil {
+		if conf.Tmpl.Directory == "" {
+			conf.Tmpl.Directory = "views"
+		}
 
-	if conf.I18n.Format == "" {
-		conf.I18n.Format = "locale_%s.ini"
-	}
+		if len(conf.Tmpl.Extensions) == 0 {
+			conf.Tmpl.Extensions = []string{".tmpl", ".html"}
+		}
 
-	if conf.I18n.TmplName == "" {
-		conf.I18n.TmplName = "i18n"
+		if len(conf.Tmpl.Delims) == 0 {
+			conf.Tmpl.Delims = []string{"{{", "}}"}
+		}
+
+		if conf.Tmpl.Charset == "" {
+			conf.Tmpl.Charset = "UTF-8"
+		}
+
+		if conf.Tmpl.HTMLContentType == "" {
+			conf.Tmpl.HTMLContentType = "text/html"
+		}
 	}
 
 }
