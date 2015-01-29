@@ -22,19 +22,22 @@ const (
 		`(?:\.[A-Z0-9!#$%&'*+/=?^_{|}~-]+)*` +
 		`@(?:[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?\.)+` +
 		`[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?`
-	regex_url_pattern = `(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?`
+	regex_url_pattern    = `(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?`
+	regex_mobile_pattern = `^1(3|5|7|8)\d{9}$`
 )
 
 var (
 	regex_email        *regexp.Regexp
 	regex_strict_email *regexp.Regexp
 	regex_url          *regexp.Regexp
+	regex_mobile       *regexp.Regexp
 )
 
 func init() {
 	regex_email = regexp.MustCompile(regex_email_pattern)
 	regex_strict_email = regexp.MustCompile(regex_strict_email_pattern)
 	regex_url = regexp.MustCompile(regex_url_pattern)
+	regex_mobile = regexp.MustCompile(regex_mobile_pattern)
 }
 
 // validate string is an email address, if not return false
@@ -53,4 +56,9 @@ func IsEmailRFC(email string) bool {
 // simple validation can match 99% cases
 func IsUrl(url string) bool {
 	return regex_url.MatchString(url)
+}
+
+// validate string is a mobile phone number, if not return false
+func IsMobile(number string) bool {
+	return regex_mobile.MatchString(number)
 }
