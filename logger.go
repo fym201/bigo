@@ -155,13 +155,14 @@ func (l *Logger) Log(level LogLevel, a ...interface{}) {
 		return
 	}
 
-	var format string
-	args := a
+	var content string
+
 	if reflect.TypeOf(a[0]).Kind() == reflect.String {
-		format = a[0].(string)
-		args = a[1:]
+		content = fmt.Sprintf(a[0].(string), a[1:]...)
+	} else {
+		content = fmt.Sprint(a...)
 	}
-	content := fmt.Sprintf(format, args...)
+
 	if ColorLog {
 		switch level {
 		case LogLevelInfo:
