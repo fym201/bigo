@@ -98,9 +98,8 @@ func New() *Bigo {
 // mocaron.Logger, mocaron.Recovery and mocaron.Static.
 func Classic() *Bigo {
 	conf := GetConfig()
-	var m *Bigo
+	m := New()
 	if conf.LogLevel != LogLevelNone {
-		m = New()
 		m.Use(ReqLogger())
 	}
 
