@@ -271,14 +271,9 @@ func (ctx *Context) SetCookie(name string, value string, others ...interface{}) 
 	cookie.Value = url.QueryEscape(value)
 
 	if len(others) > 0 {
-		switch v := others[0].(type) {
-		case int:
-			cookie.MaxAge = v
-		case int64:
-			cookie.MaxAge = int(v)
-		case int32:
-			cookie.MaxAge = int(v)
-		}
+		v := int(utl.MustToInt(others[0]))
+		cookie.MaxAge = v
+		cookie.Expires = time.Now().Add(time.Duration(v) * time.Second)
 	}
 
 	cookie.Path = "/"
