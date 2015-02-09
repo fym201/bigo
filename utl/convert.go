@@ -14,6 +14,7 @@
 package utl
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -119,6 +120,50 @@ func ToStr(value interface{}, args ...int) (s string) {
 		s = fmt.Sprintf("%v", v)
 	}
 	return s
+}
+
+func ToInt(value interface{}) (int64, error) {
+	var ret int64 = 0
+	switch v := value.(type) {
+	case bool:
+		if true {
+			ret = 1
+		}
+	case float32:
+		ret = int64(v)
+	case float64:
+		ret = int64(v)
+	case int:
+		ret = int64(v)
+	case int8:
+		ret = int64(v)
+	case int16:
+		ret = int64(v)
+	case int32:
+		ret = int64(v)
+	case int64:
+		ret = v
+	case uint:
+		ret = int64(v)
+	case uint8:
+		ret = int64(v)
+	case uint16:
+		ret = int64(v)
+	case uint32:
+		ret = int64(v)
+	case uint64:
+		ret = int64(v)
+	case string:
+		ret, _ = strconv.ParseInt(v, 10, 64)
+	default:
+		return 0, errors.New("Can not convert to int")
+	}
+	return ret, nil
+}
+
+func MustToInt(value interface{}) int64 {
+	v, _ := ToInt(value)
+	return v
 }
 
 type argInt []int
