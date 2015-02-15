@@ -85,7 +85,7 @@ type LoggerWriter struct {
 func NewFileLoggerWriter(dir string, logInterval time.Duration) io.Writer {
 
 	if !utl.IsExist(dir) {
-		if err := os.Mkdir(dir, 0x644); err != nil {
+		if err := os.MkdirAll(dir, 0x644); err != nil {
 			panic(errors.New(fmt.Sprintf("Create log dir error:[%s]", err.Error())))
 		}
 	}
