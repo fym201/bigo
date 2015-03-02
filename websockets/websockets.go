@@ -131,12 +131,12 @@ type MessageConnection struct {
 	// Sender is the string channel used for sending out strings to the client.
 	// This channel gets mapped for the next handler to use and is asynchronous
 	// unless the SendChannelBuffer is set to 0.
-	Sender chan string
+	Sender chan []byte
 
 	// Receiver is the string channel used for receiving strings from the client.
 	// This channel gets mapped for the next handler to use and is asynchronous
 	// unless the RecvChannelBuffer is set to 0.
-	Receiver chan string
+	Receiver chan []byte
 }
 
 // Message Connection connects a websocket message connection to a reflect.Value
@@ -379,9 +379,9 @@ func (c *MessageConnection) Close(closeCode int) error {
 }
 
 // Write the message to the websocket, also keeping the connection alive
-func (c *MessageConnection) write(mt int, payload string) error {
+func (c *MessageConnection) write(mt int, payload []byte) error {
 	c.keepAlive()
-	return c.ws.WriteMessage(mt, []byte(payload))
+	return c.ws.WriteMessage(mt, payload)
 }
 
 // Send handler for the message connection. Starts a goroutine
@@ -407,7 +407,7 @@ func (c *MessageConnection) send() {
 			}
 			// Write the message as a byte array to the socket
 			c.log("Writing %s to socket", bigo.LogLevelDebug, message)
-			if err := c.write(websocket.TextMessage, message); err != nil {
+			if err := c.write(websocket.BinaryMessage, message); err != nil {
 				c.log("Error writing to socket: %s", bigo.LogLevelError, err)
 				c.disconnect <- err
 				return
@@ -446,8 +446,11 @@ func (c *MessageConnection) recv() {
 			return
 		}
 		// Send the message as a string to the next handler
-		c.log("Read message from socket, %s", bigo.LogLevelDebug, string(message))
-		c.Receiver <- string(message)
+		if !c.SkipLogging {
+			c.log("Read message from socket, %s", bigo.LogLevelDebug, string(message))
+		}
+
+		c.Receiver <- message
 		c.keepAlive()
 	}
 }
@@ -606,8 +609,8 @@ func newBinding(iFace interface{}, ws *websocket.Conn, o *Options) Binding {
 	if typ.Kind() == reflect.String {
 		return &MessageConnection{
 			newConnection(ws, o),
-			make(chan string, o.SendChannelBuffer),
-			make(chan string, o.RecvChannelBuffer),
+			make(chan []byte, o.SendChannelBuffer),
+			make(chan []byte, o.RecvChannelBuffer),
 		}
 	}
 
