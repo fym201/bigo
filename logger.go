@@ -85,7 +85,7 @@ type LoggerWriter struct {
 func NewFileLoggerWriter(dir string, logInterval time.Duration) io.Writer {
 
 	if !utl.IsExist(dir) {
-		if err := os.MkdirAll(dir, 0x644); err != nil {
+		if err := os.MkdirAll(dir, 0644); err != nil {
 			panic(errors.New(fmt.Sprintf("Create log dir error:[%s]", err.Error())))
 		}
 	}
@@ -94,7 +94,7 @@ func NewFileLoggerWriter(dir string, logInterval time.Duration) io.Writer {
 	}
 
 	now := time.Now()
-	file, err := os.OpenFile(dir+now.Format("2006-01-02-15#04#05")+".txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0x644)
+	file, err := os.OpenFile(dir+now.Format("2006-01-02-15#04#05")+".txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		panic(errors.New(fmt.Sprintf("Create log file error:[%s]", err.Error())))
 	}
@@ -121,7 +121,7 @@ func (log *LoggerWriter) Write(p []byte) (n int, err error) {
 			log.file.Close()
 		}
 		now := time.Now()
-		log.file, err = os.OpenFile(log.dir+now.Format("2006-01-02-15#04#05")+".txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0x644)
+		log.file, err = os.OpenFile(log.dir+now.Format("2006-01-02-15#04#05")+".txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
 			return
 		}
