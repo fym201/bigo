@@ -13,7 +13,10 @@ func Pipe(in io.Reader, out io.Writer) error {
 			_, err = out.Write(buf)
 		}
 		if err != nil && err != io.EOF {
-			return err
+			if err != io.EOF {
+				return err
+			}
+			return nil
 		}
 	}
 	return nil

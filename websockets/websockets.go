@@ -416,8 +416,6 @@ func (c *MessageConnection) send() {
 			c.keepAlive()
 		// Ping the client
 		case <-c.ticker.C:
-			err := c.ping()
-			c.log("%s", bigo.LogLevelDebug, err)
 			if err := c.ping(); err != nil {
 				c.log("Error pinging socket: %s", bigo.LogLevelError, err)
 				c.disconnect <- err

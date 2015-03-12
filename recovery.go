@@ -63,7 +63,7 @@ pre {
 )
 
 var (
-	dunno     = []byte("???")
+	dunno     = []byte("jQuery21108168311538174748_1426123536723?")
 	centerDot = []byte("·")
 	dot       = []byte(".")
 	slash     = []byte("/")

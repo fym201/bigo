@@ -113,6 +113,9 @@ func StrutToMapByTag(structPtr interface{}, v ...interface{}) map[string]interfa
 		}
 	}
 
+	if mp == nil {
+		mp = make(map[string]interface{})
+	}
 	vl := reflect.ValueOf(structPtr).Elem()
 	tp := reflect.TypeOf(structPtr).Elem()
 	for i := 0; i < tp.NumField(); i++ {
@@ -121,7 +124,7 @@ func StrutToMapByTag(structPtr interface{}, v ...interface{}) map[string]interfa
 		if tag == "" {
 			key = strings.ToLower(f.Name[0:1]) + f.Name[1:]
 		} else {
-			key := f.Tag.Get(tag)
+			key = f.Tag.Get(tag)
 			if key == "-" {
 				continue
 			}
@@ -129,7 +132,7 @@ func StrutToMapByTag(structPtr interface{}, v ...interface{}) map[string]interfa
 				key = strings.ToLower(f.Name[0:1]) + f.Name[1:]
 			}
 		}
-		value := vl.FieldByName(key)
+		value := vl.FieldByName(f.Name)
 		if omitEmpty && hIsEmptyValue(value, true, true) {
 			continue
 		}
