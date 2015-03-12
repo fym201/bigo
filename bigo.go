@@ -103,8 +103,6 @@ func Classic() *Bigo {
 		m.Use(ReqLogger())
 	}
 
-	m.Use(Recovery())
-
 	if conf.EnableGzip {
 		m.Use(Gziper())
 	}
@@ -130,6 +128,7 @@ func Classic() *Bigo {
 	if conf.I18n != nil && conf.I18n.Enable {
 		m.Use(I18n())
 	}
+	m.Use(Recovery())
 	return m
 }
 
