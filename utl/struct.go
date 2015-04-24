@@ -2,6 +2,7 @@ package utl
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -209,6 +210,46 @@ func StructTagConvert(obj map[string]interface{}, stp reflect.Type, srcTag, dstT
 		}
 	}
 	return ret
+}
+
+// 将源struct的指定字段值拷贝到目标struct
+// @param src  源 &struct{}
+// @param dist 目标 &struct{}
+// @param feilds 需要拷贝的字段名
+func StructCopyByFields(src interface{}, dist interface{}, fields ...string) {
+	svl := reflect.ValueOf(src).Elem()
+	dvl := reflect.ValueOf(dist).Elem()
+
+	for _, key := range fields {
+		sf := svl.FieldByName(key)
+		df := dvl.FieldByName(key)
+
+		if !df.CanSet() {
+			panic(fmt.Sprintf("field [%s] can not set", key))
+		}
+		df.Set(sf)
+	}
+}
+
+// 新实例化一个struct,并将源struct的指定字段值拷贝进去
+// @param src  源 &struct{}
+// @param feilds 需要拷贝的字段名
+func StructNewByFields(src interface{}, fields ...string) interface{} {
+	newObj := reflect.New(reflect.TypeOf(src).Elem())
+	StructCopyByFields(src, newObj.Interface(), fields...)
+	return newObj.Interface()
+}
+
+//将结构体的指定字段清空
+func StructEmptyFields(dist interface{}, fields ...string) {
+	dvl := reflect.ValueOf(dist).Elem()
+	for _, key := range fields {
+		df := dvl.FieldByName(key)
+		if !df.CanSet() {
+			panic(fmt.Sprintf("field [%s] can not set", key))
+		}
+		df.Set(reflect.Zero(df.Type()))
+	}
 }
 
 // 检查给定的值是否为空值

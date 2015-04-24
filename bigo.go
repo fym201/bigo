@@ -32,6 +32,8 @@ func Version() string {
 	return _VERSION
 }
 
+type KMap map[string]interface{}
+
 // Handler can be any callable function.
 // Bigo attempts to inject services into the handler's argument list,
 // and panics if an argument could not be fullfilled via dependency injection.
