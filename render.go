@@ -60,6 +60,7 @@ var (
 		"current": func() (string, error) {
 			return "", nil
 		},
+		"unescaped": func (x string) interface{} { return template.HTML(x) },
 	}
 )
 
