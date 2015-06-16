@@ -15,6 +15,7 @@
 package utl
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -84,4 +85,21 @@ func IsSliceContainsInt64(sl []int64, i int64) bool {
 		}
 	}
 	return false
+}
+
+func StringSliceToInt64Slice(sl []string) []int64 {
+	var ret []int64
+	for _, v := range sl {
+		i, _ := strconv.ParseInt(v, 10, 64)
+		ret = append(ret, i)
+	}
+	return ret
+}
+
+func Int64SliceToStringSlice(sl []int64) []string {
+	var ret []string
+	for _, v := range sl {
+		ret = append(ret, strconv.FormatInt(v, 10))
+	}
+	return ret
 }
