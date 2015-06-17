@@ -87,6 +87,15 @@ func IsSliceContainsInt64(sl []int64, i int64) bool {
 	return false
 }
 
+func IsSliceContainsInt(sl []int, i int) bool {
+	for _, s := range sl {
+		if s == i {
+			return true
+		}
+	}
+	return false
+}
+
 func StringSliceToInt64Slice(sl []string) []int64 {
 	var ret []int64
 	for _, v := range sl {
