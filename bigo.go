@@ -20,6 +20,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/fym201/bigo/utl"
 
@@ -211,16 +212,31 @@ func (m *Bigo) Run() {
 	}
 }
 
-func (m *Bigo) RunHttp(addr string) {
+//timeOut first arg is ReadTimeout, sencond arg is WriteTimeout,default is 30 Seconds
+func (m *Bigo) RunHttp(addr string, timeOut ...time.Duration) {
 
 	logger := m.Injector.GetVal(reflect.TypeOf(m.logger)).Interface().(*Logger)
 	logger.LogInfo("Http listening on %s (%s)\n", addr, Env)
-	if err := http.ListenAndServe(addr, m); err != nil {
-		panic(err)
+	//	if err := http.ListenAndServe(addr, m); err != nil {
+	//		panic(err)
+	//	}
+
+	server := &http.Server{Addr: addr, Handler: m}
+	if len(timeOut) > 0 {
+		server.ReadTimeout = timeOut[0]
+	} else {
+		server.ReadTimeout = time.Second * 30
 	}
+
+	if len(timeOut) >= 2 {
+		server.WriteTimeout = timeOut[1]
+	} else {
+		server.WriteTimeout = time.Second * 30
+	}
+	server.ListenAndServe()
 }
 
-func (m *Bigo) RunHttps(addr string, cerFile string, keyFile string) {
+func (m *Bigo) RunHttps(addr string, cerFile string, keyFile string, timeOut ...time.Duration) {
 	logger := m.Injector.GetVal(reflect.TypeOf(m.logger)).Interface().(*Logger)
 	logger.LogInfo("Https listening on %s (%s)\n", addr, Env)
 
@@ -228,10 +244,23 @@ func (m *Bigo) RunHttps(addr string, cerFile string, keyFile string) {
 		SSLRedirect: true,
 		SSLHost:     addr, // This is optional in production. The default behavior is to just redirect the request to the https protocol. Example: http://github.com/some_page would be redirected to https://github.com/some_page.
 	}))
-	if err := http.ListenAndServeTLS(addr, cerFile, keyFile, m); err != nil {
-		panic(err)
+	//	if err := http.ListenAndServeTLS(addr, cerFile, keyFile, m); err != nil {
+	//		panic(err)
+	//	}
+
+	server := &http.Server{Addr: addr, Handler: m}
+	if len(timeOut) > 0 {
+		server.ReadTimeout = timeOut[0]
+	} else {
+		server.ReadTimeout = time.Second * 30
 	}
 
+	if len(timeOut) >= 2 {
+		server.WriteTimeout = timeOut[1]
+	} else {
+		server.WriteTimeout = time.Second * 30
+	}
+	server.ListenAndServeTLS(cerFile, keyFile)
 }
 
 // SetURLPrefix sets URL prefix of router layer, so that it support suburl.
