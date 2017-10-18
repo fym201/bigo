@@ -240,10 +240,10 @@ func (m *Bigo) RunHttps(addr string, cerFile string, keyFile string, timeOut ...
 	logger := m.Injector.GetVal(reflect.TypeOf(m.logger)).Interface().(*Logger)
 	logger.LogInfo("Https listening on %s (%s)\n", addr, Env)
 
-	m.Use(Secure(SecureOptions{
-		SSLRedirect: true,
-		SSLHost:     addr, // This is optional in production. The default behavior is to just redirect the request to the https protocol. Example: http://github.com/some_page would be redirected to https://github.com/some_page.
-	}))
+	// m.Use(Secure(SecureOptions{
+	// 	SSLRedirect: true,
+	// 	SSLHost:     addr, // This is optional in production. The default behavior is to just redirect the request to the https protocol. Example: http://github.com/some_page would be redirected to https://github.com/some_page.
+	// }))
 	//	if err := http.ListenAndServeTLS(addr, cerFile, keyFile, m); err != nil {
 	//		panic(err)
 	//	}
@@ -260,7 +260,9 @@ func (m *Bigo) RunHttps(addr string, cerFile string, keyFile string, timeOut ...
 	} else {
 		server.WriteTimeout = time.Second * 30
 	}
-	server.ListenAndServeTLS(cerFile, keyFile)
+	if err := server.ListenAndServeTLS(cerFile, keyFile); err != nil {
+		panic(err)
+	}
 }
 
 // SetURLPrefix sets URL prefix of router layer, so that it support suburl.
